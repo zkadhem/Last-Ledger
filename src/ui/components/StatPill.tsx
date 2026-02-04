@@ -1,34 +1,48 @@
 import React from "react";
 import clsx from "clsx";
 
+const STAT_ICONS: Record<string, string> = {
+  "Treasury": "💰",
+  "Debt": "📜",
+  "Stability": "⚖️",
+  "Corruption": "🐀",
+  "Inflation": "📈",
+  "Coup Risk": "⚔️"
+};
+
 export function StatPill(props: {
   label: string;
   value: string;
   tone?: "good" | "bad" | "warn" | "neutral";
 }) {
   const tone = props.tone ?? "neutral";
-  const ring =
+  const icon = STAT_ICONS[props.label] || "📊";
+  
+  const badgeClass = 
     tone === "good"
-      ? "ring-emerald-400/25"
+      ? "stat-badge-good"
       : tone === "bad"
-      ? "ring-rose-400/25"
+      ? "stat-badge-bad"
       : tone === "warn"
-      ? "ring-amber-400/25"
-      : "ring-slate-700";
+      ? "stat-badge-warn"
+      : "";
 
   const text =
     tone === "good"
-      ? "text-emerald-200"
+      ? "text-emerald-400"
       : tone === "bad"
-      ? "text-rose-200"
+      ? "text-red-400"
       : tone === "warn"
-      ? "text-amber-200"
-      : "text-slate-200";
+      ? "text-amber-400"
+      : "text-parchment-300";
 
   return (
-    <div className={clsx("rounded-xl bg-slate-950/40 px-3 py-2 ring-1", ring)}>
-      <div className="text-[10px] uppercase tracking-wider text-slate-400">{props.label}</div>
-      <div className={clsx("text-sm font-semibold tabular-nums", text)}>{props.value}</div>
+    <div className={clsx("stat-badge rounded-lg px-3 py-2", badgeClass)}>
+      <div className="text-[10px] uppercase tracking-wider text-parchment-500 font-display flex items-center gap-1">
+        <span>{icon}</span>
+        <span>{props.label}</span>
+      </div>
+      <div className={clsx("text-sm font-semibold tabular-nums font-display", text)}>{props.value}</div>
     </div>
   );
 }

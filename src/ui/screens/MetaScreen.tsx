@@ -17,78 +17,159 @@ export function MetaScreen() {
   }, [meta.unlockedRulerIds]);
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      <Card className="md:col-span-2">
-        <div className="text-lg font-semibold">Meta Progression</div>
-        <div className="mt-2 text-sm text-slate-300">
-          Unlock new rulers and policies by surviving longer, reaching extremes, and winning. Lore can be added later as “ledger notes.”
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* Header */}
+      <Card className="md:col-span-2" ornate>
+        <div className="text-center py-4">
+          <div className="text-4xl mb-3">📚</div>
+          <h1 className="font-display text-2xl font-bold text-gold-400 tracking-wide">
+            The Royal Chronicles
+          </h1>
+          <p className="mt-3 text-sm text-parchment-300 font-body max-w-2xl mx-auto">
+            A record of all thy reigns. New rulers and edicts are unlocked through perseverance, 
+            cunning, and occasionally, spectacular failure.
+          </p>
         </div>
       </Card>
 
+      {/* Stats */}
       <Card>
-        <div className="text-sm font-semibold">Stats</div>
-        <div className="mt-3 space-y-2 text-sm">
-          <div className="rounded-xl bg-slate-950/35 p-3 ring-1 ring-slate-800">
-            Runs played: <span className="tabular-nums text-slate-200">{meta.runsPlayed}</span>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl">📊</span>
+          <h2 className="font-display text-lg font-semibold text-gold-400">Lifetime Statistics</h2>
+        </div>
+        
+        <div className="space-y-3">
+          <div className="scroll-panel rounded-lg p-4 flex justify-between items-center">
+            <span className="text-sm text-parchment-400 flex items-center gap-2">
+              <span>👑</span> Total Reigns
+            </span>
+            <span className="font-display text-xl font-bold text-gold-400 tabular-nums">{meta.runsPlayed}</span>
           </div>
-          <div className="rounded-xl bg-slate-950/35 p-3 ring-1 ring-slate-800">
-            Wins: <span className="tabular-nums text-slate-200">{meta.wins}</span>
+          <div className="scroll-panel rounded-lg p-4 flex justify-between items-center">
+            <span className="text-sm text-parchment-400 flex items-center gap-2">
+              <span>🏆</span> Victories
+            </span>
+            <span className="font-display text-xl font-bold text-emerald-400 tabular-nums">{meta.wins}</span>
           </div>
-          <div className="rounded-xl bg-slate-950/35 p-3 ring-1 ring-slate-800">
-            Best weeks: <span className="tabular-nums text-slate-200">{meta.bestWeeks}</span>
+          <div className="scroll-panel rounded-lg p-4 flex justify-between items-center">
+            <span className="text-sm text-parchment-400 flex items-center gap-2">
+              <span>📅</span> Longest Reign
+            </span>
+            <span className="font-display text-xl font-bold text-parchment-200 tabular-nums">{meta.bestWeeks} weeks</span>
           </div>
-          <div className="rounded-xl bg-slate-950/35 p-3 ring-1 ring-slate-800">
-            Best score: <span className="tabular-nums text-slate-200">{meta.bestScore}</span>
+          <div className="scroll-panel rounded-lg p-4 flex justify-between items-center">
+            <span className="text-sm text-parchment-400 flex items-center gap-2">
+              <span>⭐</span> Best Score
+            </span>
+            <span className="font-display text-xl font-bold text-gold-400 tabular-nums">{meta.bestScore}</span>
           </div>
         </div>
 
-        <div className="mt-4 flex gap-2">
+        <div className="mt-5 flex gap-3">
           <button
-            className="rounded-2xl bg-indigo-500/20 px-4 py-3 text-sm font-semibold ring-1 ring-indigo-400/25 hover:bg-indigo-500/25"
+            className="gold-btn flex-1 rounded-lg px-4 py-3 font-display font-semibold text-parchment-900"
             onClick={() => go("title")}
           >
-            Back
+            ← Return to Hall
           </button>
           <button
-            className="rounded-2xl px-4 py-3 text-sm ring-1 ring-rose-400/25 hover:bg-rose-500/10 text-rose-200"
-            onClick={() => resetMeta()}
+            className="ink-btn rounded-lg px-4 py-3 font-display text-red-400 hover:text-red-300 border border-red-900/50"
+            onClick={() => {
+              if (confirm("Art thou certain? All progress shall be erased forever.")) {
+                resetMeta();
+              }
+            }}
           >
-            Wipe Meta
+            🗑️ Purge Records
           </button>
         </div>
       </Card>
 
+      {/* Unlocked Content */}
       <Card>
-        <div className="text-sm font-semibold">Unlocked Content</div>
-        <div className="mt-3">
-          <div className="text-xs uppercase tracking-wider text-slate-400">Policies</div>
-          <ul className="mt-2 space-y-1 text-sm text-slate-200">
-            {policyNames.map((n, i) => <li key={i} className="rounded-xl bg-slate-950/35 p-2 ring-1 ring-slate-800">{n}</li>)}
-          </ul>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl">🔓</span>
+          <h2 className="font-display text-lg font-semibold text-gold-400">Unlocked Content</h2>
+        </div>
+        
+        <div className="space-y-4 max-h-80 overflow-y-auto pr-1">
+          <div>
+            <div className="text-xs font-display uppercase tracking-wider text-parchment-500 mb-2 flex items-center gap-2">
+              <span>📜</span> Edicts ({policyNames.length})
+            </div>
+            <div className="grid gap-2">
+              {policyNames.map((n, i) => (
+                <div key={i} className="stat-badge rounded-lg px-3 py-2 text-sm text-parchment-300 font-body">
+                  {n}
+                </div>
+              ))}
+            </div>
+          </div>
 
-          <div className="mt-4 text-xs uppercase tracking-wider text-slate-400">Rulers</div>
-          <ul className="mt-2 space-y-1 text-sm text-slate-200">
-            {rulerNames.map((n, i) => <li key={i} className="rounded-xl bg-slate-950/35 p-2 ring-1 ring-slate-800">{n}</li>)}
-          </ul>
+          <div>
+            <div className="text-xs font-display uppercase tracking-wider text-parchment-500 mb-2 flex items-center gap-2">
+              <span>👑</span> Rulers ({rulerNames.length})
+            </div>
+            <div className="grid gap-2">
+              {rulerNames.map((n, i) => (
+                <div key={i} className="stat-badge rounded-lg px-3 py-2 text-sm text-parchment-300 font-body">
+                  {n}
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </Card>
 
+      {/* Recent Runs */}
       <Card className="md:col-span-2">
-        <div className="text-sm font-semibold">Recent Runs</div>
-        <div className="mt-2 text-xs text-slate-400">Up to 40 stored locally.</div>
-        <div className="mt-3 grid gap-2 md:grid-cols-2">
-          {meta.runHistory.slice(0, 8).map((h, idx) => (
-            <div key={idx} className="rounded-2xl bg-slate-950/35 p-3 ring-1 ring-slate-800">
-              <div className="text-xs text-slate-400">{new Date(h.at).toLocaleString()}</div>
-              <div className="mt-1 text-sm font-semibold">
-                {h.result.reason.toUpperCase()} • Weeks {h.result.weeksSurvived} • Score {h.result.score}
-              </div>
-              <div className="mt-1 text-xs text-slate-400 tabular-nums">
-                Gold {Math.round(h.result.finalTreasury)} • Debt {Math.round(h.result.finalDebt)} • Stability {Math.round(h.result.finalStability)}
-              </div>
-            </div>
-          ))}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <span className="text-xl">📖</span>
+            <h2 className="font-display text-lg font-semibold text-gold-400">Recent Reigns</h2>
+          </div>
+          <span className="text-xs text-parchment-500">{meta.runHistory.length} of 40 records</span>
         </div>
+        
+        <div className="grid gap-3 md:grid-cols-2">
+          {meta.runHistory.slice(0, 8).map((h, idx) => {
+            const isVictory = h.result.reason === "survived";
+            return (
+              <div key={idx} className="request-card rounded-lg p-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`text-lg ${isVictory ? "text-gold-400" : "text-red-400"}`}>
+                    {isVictory ? "🏆" : "💀"}
+                  </span>
+                  <span className="text-[10px] text-parchment-500 font-mono">
+                    {new Date(h.at).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="font-display font-semibold text-parchment-200">
+                  {h.result.reason.charAt(0).toUpperCase() + h.result.reason.slice(1).replace("_", " ")}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                  <span className="stat-badge rounded-full px-2 py-1">
+                    📅 {h.result.weeksSurvived} weeks
+                  </span>
+                  <span className="stat-badge rounded-full px-2 py-1">
+                    ⭐ {h.result.score}
+                  </span>
+                </div>
+                <div className="mt-2 text-[10px] text-parchment-500 tabular-nums">
+                  💰 {Math.round(h.result.finalTreasury)} • 📜 {Math.round(h.result.finalDebt)} • ⚖️ {Math.round(h.result.finalStability)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        {meta.runHistory.length === 0 && (
+          <div className="text-center py-8">
+            <div className="text-3xl mb-2">📭</div>
+            <p className="text-sm text-parchment-500 font-body">No reigns recorded yet. Begin thy first!</p>
+          </div>
+        )}
       </Card>
     </div>
   );

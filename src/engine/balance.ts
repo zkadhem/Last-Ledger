@@ -15,8 +15,8 @@ export const BALANCE = {
   bankruptFloor: -200, // allow some deficit before forced end
 
   // requests
-  requestsPerWeekMin: 2,
-  requestsPerWeekMax: 4,
+  requestsPerWeekMin: 4,
+  requestsPerWeekMax: 6,
   requestCostWeekScaler: 1.015,
 
   // inflation effects

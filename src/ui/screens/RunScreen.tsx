@@ -10,6 +10,7 @@ import { EventCard } from "../widgets/EventCard";
 import { ActionsPanel } from "../widgets/ActionsPanel";
 import { LedgerTable } from "../widgets/LedgerTable";
 import { TimelinePanel } from "../widgets/TimelinePanel";
+import { PolicyManager, PolicyButton } from "../widgets/PolicyPicker";
 import { CONTENT } from "../../engine/content";
 import { computeCoupChance } from "../../engine/simulation";
 
@@ -20,19 +21,18 @@ function toneForValue(v: number, goodAbove: number, badBelow: number) {
 }
 
 export function RunScreen() {
-  const { run, startWeek, finishWeek, decide, toast, showEffectPopup } = useGameStore(s => ({
+  const { run, startWeek, finishWeek, decide, toast, showEffectPopup, showingPolicyPicker } = useGameStore(s => ({
     run: s.run,
     startWeek: s.startWeek,
     finishWeek: s.finishWeek,
     decide: s.decide,
     toast: s.toast,
-    showEffectPopup: s.showEffectPopup
+    showEffectPopup: s.showEffectPopup,
+    showingPolicyPicker: s.showingPolicyPicker
   }));
 
   useEffect(() => {
-    // Auto-begin week 1 when run starts (or when week advances)
     if (!run) return;
-    // If there is no event and no requests, we assume week not initialized.
     if (!run.currentEvent && run.requestQueue.length === 0) {
       startWeek();
     }
@@ -52,10 +52,9 @@ export function RunScreen() {
     
     decide(id, decision);
     
-    // Show effect popup for the decision
     if (decision === "approve") {
       showEffectPopup({
-        title: `✅ Approved: ${req.title}`,
+        title: `✓ Granted: ${req.title}`,
         effects: [
           { label: "Treasury", value: `-${req.cost}`, tone: "bad" },
           { label: `${req.faction || "General"} Relations`, value: "Improved", tone: "good" }
@@ -63,32 +62,46 @@ export function RunScreen() {
       });
     } else if (decision === "deny") {
       showEffectPopup({
-        title: `❌ Denied: ${req.title}`,
+        title: `✗ Denied: ${req.title}`,
         effects: [
           { label: "Treasury", value: "No change", tone: "neutral" },
           { label: `${req.faction || "General"} Relations`, value: "Damaged", tone: "bad" }
         ]
       });
     } else {
-      toast("Delayed. The ledger hates procrastination.");
+      toast("Deferred. The ledger grows impatient with procrastination.");
     }
   };
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3">
-      <div className="lg:col-span-3 space-y-3">
+    <div className="grid gap-5 lg:grid-cols-3">
+      {/* Header Section */}
+      <div className="lg:col-span-3 space-y-4">
         <WarningBanner />
         
-        <Card>
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="text-sm font-semibold">
-                {ruler?.name} {ruler?.epithet} — Week {run.week} / {run.weeksTotal}
-              </div>
-              <div className="mt-1 text-xs text-slate-400">
-                Seed <span className="font-mono">{run.seed}</span> • Policies{" "}
-                <span className="text-slate-200">{run.policyIds.length}</span>
-                <span className="ml-2">• Coup Chance: <span className={coupChance >= 0.15 ? "text-rose-300" : coupChance >= 0.08 ? "text-amber-300" : "text-emerald-300"}>{(coupChance * 100).toFixed(1)}%</span></span>
+        <Card ornate>
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="flex items-center gap-4">
+              <div className="text-3xl">👑</div>
+              <div>
+                <h2 className="font-display text-lg font-bold text-gold-400">
+                  {ruler?.name} {ruler?.epithet}
+                </h2>
+                <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-parchment-400">
+                  <span className="flex items-center gap-1">
+                    📅 Week <span className="font-display font-semibold text-parchment-200">{run.week}</span> of {run.weeksTotal}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    🎲 Seal: <span className="font-mono text-parchment-500">{run.seed.slice(0, 12)}...</span>
+                  </span>
+                  <span className={`flex items-center gap-1 ${
+                    coupChance >= 0.15 ? "text-red-400" : 
+                    coupChance >= 0.08 ? "text-amber-400" : 
+                    "text-emerald-400"
+                  }`}>
+                    ⚔️ Coup Risk: <span className="font-display font-semibold">{(coupChance * 100).toFixed(1)}%</span>
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -104,29 +117,66 @@ export function RunScreen() {
         </Card>
       </div>
 
-      <div className="space-y-4">
+      {/* Left Column */}
+      <div className="space-y-5">
         <TimelinePanel history={run.history} week={run.week} total={run.weeksTotal} />
         <EventCard event={run.currentEvent} />
+        
+        {/* Policy Management Button */}
+        <Card>
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xl">📜</span>
+            <div>
+              <h3 className="font-display text-lg font-semibold text-gold-400">Royal Edicts</h3>
+              <p className="text-xs text-parchment-400 font-body">
+                {run.policyIds.length === 0 
+                  ? "No edicts enacted. Enact decrees to shape your reign."
+                  : `${run.policyIds.length} edict${run.policyIds.length > 1 ? 's' : ''} guiding the realm`
+                }
+              </p>
+            </div>
+          </div>
+          
+          {/* Show active policies */}
+          {run.policyIds.length > 0 && (
+            <div className="mb-3 space-y-1">
+              {run.policyIds.map(id => {
+                const policy = CONTENT.policies.find(p => p.id === id);
+                if (!policy) return null;
+                return (
+                  <div key={id} className="text-xs text-parchment-300 font-body flex items-center gap-2">
+                    <span className="text-gold-500">✓</span>
+                    <span>{policy.name}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          
+          <PolicyButton />
+        </Card>
+        
         <ActionsPanel disabled={false} />
         <FactionPanel loyalty={run.loyalty} />
       </div>
 
-      <div className="space-y-4 lg:col-span-2">
+      {/* Right Column - Main Content */}
+      <div className="space-y-5 lg:col-span-2">
         <RequestQueue
           requests={run.requestQueue}
           onDecide={handleDecide}
         />
 
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-xs text-slate-400">
-            Close week when all requests are resolved (or delayed until you can handle them).
+        <div className="parchment rounded-lg p-4 flex items-center justify-between gap-4">
+          <div className="text-sm text-parchment-400 font-body">
+            <span className="text-gold-500">⏳</span> Complete all petitions before closing the week's accounts.
           </div>
           <button
             disabled={!canCloseWeek}
             onClick={() => finishWeek()}
-            className="rounded-2xl bg-indigo-500/20 px-4 py-3 text-sm font-semibold ring-1 ring-indigo-400/25 hover:bg-indigo-500/25 disabled:opacity-40"
+            className="gold-btn rounded-lg px-6 py-3 font-display font-semibold text-parchment-900 disabled:opacity-40 disabled:cursor-not-allowed"
           >
-            Close Week
+            📋 Close Week
           </button>
         </div>
 
@@ -135,6 +185,9 @@ export function RunScreen() {
 
       {/* Story Event Modal */}
       <StoryEventModal />
+      
+      {/* Policy Manager Modal */}
+      {showingPolicyPicker && <PolicyManager />}
     </div>
   );
 }

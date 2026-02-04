@@ -3,50 +3,72 @@ import { Card } from "../components/Card";
 import type { GeneratedRequest } from "../../types";
 import clsx from "clsx";
 
+const FACTION_ICONS: Record<string, string> = {
+  peasants: "🌾",
+  nobles: "🏰",
+  mages: "🔮",
+  army: "⚔️",
+  underworld: "🗡️"
+};
+
 export function RequestQueue(props: {
   requests: GeneratedRequest[];
   onDecide: (id: string, decision: "approve" | "deny" | "delay") => void;
 }) {
   return (
     <Card>
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm font-semibold">Expense Requests</div>
-          <div className="text-xs text-slate-400">Approve / deny / delay. Delays worsen cost & urgency.</div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">📜</span>
+          <div>
+            <h3 className="font-display text-lg font-semibold text-gold-400">Royal Petitions</h3>
+            <p className="text-xs text-parchment-400 font-body">
+              Grant, deny, or defer. Delays breed discontent and inflate costs.
+            </p>
+          </div>
         </div>
-        <div className="text-xs text-slate-400">{props.requests.length} open</div>
+        <div className="stat-badge rounded-lg px-3 py-1">
+          <span className="text-xs text-parchment-400">{props.requests.length} awaiting</span>
+        </div>
       </div>
 
-      <div className="mt-3 space-y-3">
+      <div className="space-y-3">
         {props.requests.length === 0 && (
-          <div className="rounded-2xl bg-slate-950/40 p-4 text-sm text-slate-300 ring-1 ring-slate-800">
-            No open requests. Close the week.
+          <div className="scroll-panel rounded-lg p-6 text-center">
+            <div className="text-2xl mb-2">📋</div>
+            <div className="text-sm text-parchment-300 font-body">
+              All petitions resolved. Thou may close the week.
+            </div>
           </div>
         )}
 
         {props.requests.map(r => (
-          <div key={r.instanceId} className="rounded-2xl bg-slate-950/40 p-4 ring-1 ring-slate-800">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold">{r.title}</div>
-                <div className="mt-1 text-xs text-slate-300">{r.body}</div>
-                <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-slate-400">
-                  <span className="rounded-full bg-slate-900/60 px-2 py-1 ring-1 ring-slate-800">
-                    Cost <span className="tabular-nums text-slate-200">{r.cost}</span>
+          <div key={r.instanceId} className="request-card rounded-lg p-4 transition-all hover:shadow-lg">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  {r.faction && <span className="text-lg">{FACTION_ICONS[r.faction] || "📋"}</span>}
+                  <h4 className="font-display font-semibold text-parchment-200">{r.title}</h4>
+                </div>
+                <p className="mt-2 text-sm text-parchment-400 font-body leading-relaxed">{r.body}</p>
+                
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className="stat-badge rounded-full px-3 py-1 text-xs">
+                    💰 <span className="tabular-nums text-gold-400 font-semibold">{r.cost}</span> gold
                   </span>
                   <span
                     className={clsx(
-                      "rounded-full px-2 py-1 ring-1",
-                      r.urgency >= 3 ? "bg-rose-500/10 ring-rose-400/30 text-rose-200"
-                      : r.urgency === 2 ? "bg-amber-500/10 ring-amber-400/30 text-amber-200"
-                      : "bg-slate-900/60 ring-slate-800 text-slate-300"
+                      "rounded-full px-3 py-1 text-xs font-display",
+                      r.urgency >= 3 ? "urgency-high"
+                      : r.urgency === 2 ? "urgency-medium"
+                      : "urgency-low"
                     )}
                   >
-                    Urgency {r.urgency}
+                    {r.urgency >= 3 ? "⚠️ Urgent" : r.urgency === 2 ? "⏳ Pressing" : "📝 Routine"}
                   </span>
                   {r.faction && (
-                    <span className="rounded-full bg-slate-900/60 px-2 py-1 ring-1 ring-slate-800">
-                      Faction: <span className="text-slate-200">{r.faction}</span>
+                    <span className="stat-badge rounded-full px-3 py-1 text-xs">
+                      {FACTION_ICONS[r.faction]} <span className="text-parchment-300 capitalize">{r.faction}</span>
                     </span>
                   )}
                 </div>
@@ -55,21 +77,21 @@ export function RequestQueue(props: {
               <div className="flex shrink-0 flex-col gap-2">
                 <button
                   onClick={() => props.onDecide(r.instanceId, "approve")}
-                  className="rounded-xl bg-emerald-500/15 px-3 py-2 text-xs ring-1 ring-emerald-400/25 hover:bg-emerald-500/20"
+                  className="gold-btn rounded-lg px-4 py-2 text-xs font-display font-semibold text-parchment-900"
                 >
-                  Approve
+                  ✓ Grant
                 </button>
                 <button
                   onClick={() => props.onDecide(r.instanceId, "deny")}
-                  className="rounded-xl bg-rose-500/15 px-3 py-2 text-xs ring-1 ring-rose-400/25 hover:bg-rose-500/20"
+                  className="wax-seal rounded-lg px-4 py-2 text-xs font-display font-semibold"
                 >
-                  Deny
+                  ✗ Deny
                 </button>
                 <button
                   onClick={() => props.onDecide(r.instanceId, "delay")}
-                  className="rounded-xl bg-slate-900/50 px-3 py-2 text-xs ring-1 ring-slate-700 hover:ring-slate-500 hover:bg-slate-900/70"
+                  className="ink-btn rounded-lg px-4 py-2 text-xs font-display text-parchment-400 hover:text-parchment-200"
                 >
-                  Delay
+                  ⏸ Defer
                 </button>
               </div>
             </div>

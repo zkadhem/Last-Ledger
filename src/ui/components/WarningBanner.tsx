@@ -7,7 +7,6 @@ export function WarningBanner() {
 
   if (warnings.length === 0) return null;
 
-  // Sort by severity - critical first
   const sortedWarnings = [...warnings].sort((a, b) => {
     if (a.severity === "critical" && b.severity !== "critical") return -1;
     if (a.severity !== "critical" && b.severity === "critical") return 1;
@@ -23,13 +22,17 @@ export function WarningBanner() {
             initial={{ x: -20, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: -20, opacity: 0 }}
-            className={`rounded-2xl px-4 py-3 text-sm font-medium ${
+            className={`warning-banner rounded-lg px-4 py-3 font-body ${
               warning.severity === "critical"
-                ? "bg-rose-500/20 text-rose-200 ring-1 ring-rose-500/30 animate-pulse"
-                : "bg-amber-500/20 text-amber-200 ring-1 ring-amber-500/30"
+                ? "bg-red-900/30 border-red-500 animate-pulse"
+                : "bg-amber-900/20 border-amber-600"
             }`}
           >
-            {warning.message}
+            <span className={`text-sm font-medium ${
+              warning.severity === "critical" ? "text-red-300" : "text-amber-300"
+            }`}>
+              {warning.message}
+            </span>
           </motion.div>
         ))}
       </AnimatePresence>

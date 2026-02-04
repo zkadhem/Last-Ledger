@@ -1,34 +1,38 @@
 import React from "react";
-import { motion } from "framer-motion";
+import clsx from "clsx";
 
 export function ProgressBar(props: {
   label: string;
-  value: number; // 0..100
+  value: number;
   tone?: "good" | "bad" | "warn" | "neutral";
 }) {
-  const v = Math.max(0, Math.min(100, props.value));
   const tone = props.tone ?? "neutral";
-  const bar =
-    tone === "good"
-      ? "bg-emerald-500/60"
-      : tone === "bad"
-      ? "bg-rose-500/60"
-      : tone === "warn"
-      ? "bg-amber-500/60"
-      : "bg-indigo-500/60";
+  const pct = Math.min(100, Math.max(0, props.value));
+
+  const fillColor =
+    tone === "good" ? "from-emerald-700 to-emerald-500"
+    : tone === "bad" ? "from-red-700 to-red-500"
+    : tone === "warn" ? "from-amber-700 to-amber-500"
+    : "from-parchment-700 to-parchment-500";
+
+  const textColor =
+    tone === "good" ? "text-emerald-400"
+    : tone === "bad" ? "text-red-400"
+    : tone === "warn" ? "text-amber-400"
+    : "text-parchment-300";
 
   return (
     <div>
-      <div className="flex items-center justify-between text-xs text-slate-400">
-        <span>{props.label}</span>
-        <span className="tabular-nums">{v.toFixed(0)}</span>
+      <div className="flex justify-between text-xs mb-1">
+        <span className="text-parchment-400 font-display">{props.label}</span>
+        <span className={clsx("font-display font-semibold tabular-nums", textColor)}>
+          {props.value.toFixed(0)}
+        </span>
       </div>
-      <div className="mt-1 h-2 overflow-hidden rounded-full bg-slate-900 ring-1 ring-slate-800">
-        <motion.div
-          className={`h-full ${bar}`}
-          initial={{ width: 0 }}
-          animate={{ width: `${v}%` }}
-          transition={{ type: "spring", stiffness: 120, damping: 20 }}
+      <div className="h-2 rounded-full bg-parchment-900/50 overflow-hidden border border-parchment-700/30">
+        <div
+          className={clsx("h-full rounded-full bg-gradient-to-r transition-all duration-500", fillColor)}
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>

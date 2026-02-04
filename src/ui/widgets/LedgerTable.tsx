@@ -1,109 +1,97 @@
 import React from "react";
-import { Card } from "../components/Card";
 import type { LedgerLine } from "../../types";
+import { Card } from "../components/Card";
 
 export function LedgerTable(props: { lines: LedgerLine[]; currentWeek: number }) {
-  // Filter to show only current week's entries
-  const currentWeekLines = props.lines.filter(l => l.week === props.currentWeek);
-  const rows = currentWeekLines.slice(0, 20);
+  const { lines, currentWeek } = props;
+  const currentWeekLines = lines.filter(l => l.week === currentWeek);
+
+  if (currentWeekLines.length === 0) {
+    return (
+      <Card>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-xl">📖</span>
+          <h3 className="font-display text-lg font-semibold text-gold-400">The Royal Ledger</h3>
+        </div>
+        <div className="scroll-panel rounded-lg p-6 text-center">
+          <div className="text-2xl mb-2">📋</div>
+          <p className="text-sm text-parchment-300 font-body">
+            No entries yet this week. Resolve petitions to update the ledger.
+          </p>
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card>
-      <div className="flex items-center justify-between">
-        <div>
-          <div className="text-sm font-semibold">Week {props.currentWeek} Ledger</div>
-          <div className="text-xs text-slate-400">This week's transactions. Every coin tells a story.</div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xl">📖</span>
+          <div>
+            <h3 className="font-display text-lg font-semibold text-gold-400">Week {currentWeek} Ledger</h3>
+            <p className="text-xs text-parchment-400 font-body">
+              Chronicle of this week's fortune and fate
+            </p>
+          </div>
         </div>
-        <div className="text-xs text-slate-400">{currentWeekLines.length} entries</div>
+        <div className="stat-badge rounded-lg px-3 py-1">
+          <span className="text-xs text-parchment-400">{currentWeekLines.length} entries</span>
+        </div>
       </div>
 
-      <div className="mt-3 overflow-hidden rounded-2xl ring-1 ring-slate-800">
-        <table className="w-full text-left text-xs">
-          <thead className="bg-slate-900/50 text-slate-300">
-            <tr>
-              <th className="px-3 py-2">Entry</th>
-              <th className="px-3 py-2 w-16 text-right">Δ Gold</th>
-              <th className="px-3 py-2 w-16 text-right">Δ Debt</th>
-              <th className="px-3 py-2 w-16 text-right">Δ Stab</th>
-              <th className="px-3 py-2 w-16 text-right">Δ Corr</th>
-              <th className="px-3 py-2 w-16 text-right">Δ Infl</th>
-              <th className="px-3 py-2 w-16 text-right">Δ Coup</th>
-            </tr>
-          </thead>
-          <tbody className="bg-slate-950/30">
-            {rows.length === 0 ? (
-              <tr>
-                <td colSpan={7} className="px-3 py-4 text-center text-slate-500">
-                  No entries yet this week
-                </td>
-              </tr>
-            ) : (
-              rows.map((l, idx) => (
-                <tr key={idx} className="border-t border-slate-800">
-                  <td className="px-3 py-2">
-                    <div className="text-slate-100">{l.label}</div>
-                    {l.note && <div className="text-[10px] text-slate-400">{l.note}</div>}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {l.deltaTreasury ? (
-                      <span className={l.deltaTreasury >= 0 ? "text-emerald-300" : "text-rose-300"}>
-                        {l.deltaTreasury >= 0 ? "+" : ""}{Math.round(l.deltaTreasury)}
-                      </span>
-                    ) : (
-                      <span className="text-slate-600">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {l.deltaDebt ? (
-                      <span className={l.deltaDebt >= 0 ? "text-amber-300" : "text-slate-200"}>
-                        {l.deltaDebt >= 0 ? "+" : ""}{Math.round(l.deltaDebt)}
-                      </span>
-                    ) : (
-                      <span className="text-slate-600">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {l.deltaStability ? (
-                      <span className={l.deltaStability >= 0 ? "text-emerald-300" : "text-rose-300"}>
-                        {l.deltaStability >= 0 ? "+" : ""}{l.deltaStability.toFixed(1)}
-                      </span>
-                    ) : (
-                      <span className="text-slate-600">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {l.deltaCorruption ? (
-                      <span className={l.deltaCorruption <= 0 ? "text-emerald-300" : "text-rose-300"}>
-                        {l.deltaCorruption >= 0 ? "+" : ""}{l.deltaCorruption.toFixed(1)}
-                      </span>
-                    ) : (
-                      <span className="text-slate-600">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {l.deltaInflation ? (
-                      <span className={l.deltaInflation <= 0 ? "text-emerald-300" : "text-rose-300"}>
-                        {l.deltaInflation >= 0 ? "+" : ""}{l.deltaInflation.toFixed(1)}
-                      </span>
-                    ) : (
-                      <span className="text-slate-600">—</span>
-                    )}
-                  </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
-                    {l.deltaCoupRisk ? (
-                      <span className={l.deltaCoupRisk <= 0 ? "text-emerald-300" : "text-rose-300"}>
-                        {l.deltaCoupRisk >= 0 ? "+" : ""}{l.deltaCoupRisk.toFixed(1)}
-                      </span>
-                    ) : (
-                      <span className="text-slate-600">—</span>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+      <div className="space-y-2 max-h-80 overflow-y-auto scroll-panel rounded-lg p-3">
+        {currentWeekLines.map((line, i) => (
+          <div 
+            key={i} 
+            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 rounded-lg bg-parchment-900/30 border border-parchment-800/50"
+          >
+            <div className="flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-parchment-500 font-mono">W{line.week}</span>
+                <span className="text-sm font-display text-parchment-200">{line.label}</span>
+              </div>
+              {line.note && (
+                <p className="text-xs text-parchment-500 font-body italic mt-1">{line.note}</p>
+              )}
+            </div>
+            
+            <div className="flex flex-wrap gap-2 text-xs">
+              {line.deltaTreasury !== undefined && line.deltaTreasury !== 0 && (
+                <DeltaBadge icon="💰" value={line.deltaTreasury} label="gold" />
+              )}
+              {line.deltaDebt !== undefined && line.deltaDebt !== 0 && (
+                <DeltaBadge icon="📜" value={line.deltaDebt} label="debt" inverted />
+              )}
+              {line.deltaStability !== undefined && line.deltaStability !== 0 && (
+                <DeltaBadge icon="⚖️" value={line.deltaStability} label="stab" />
+              )}
+              {line.deltaCorruption !== undefined && line.deltaCorruption !== 0 && (
+                <DeltaBadge icon="🎭" value={line.deltaCorruption} label="corr" inverted />
+              )}
+              {line.deltaInflation !== undefined && line.deltaInflation !== 0 && (
+                <DeltaBadge icon="📈" value={line.deltaInflation} label="infl" inverted />
+              )}
+              {line.deltaCoupRisk !== undefined && line.deltaCoupRisk !== 0 && (
+                <DeltaBadge icon="⚔️" value={line.deltaCoupRisk} label="coup" inverted />
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </Card>
+  );
+}
+
+function DeltaBadge(props: { icon: string; value: number; label: string; inverted?: boolean }) {
+  const isPositive = props.value > 0;
+  const isGood = props.inverted ? !isPositive : isPositive;
+  
+  return (
+    <span className={isGood ? "inline-flex items-center gap-1 px-2 py-1 rounded font-mono bg-emerald-900/30 text-emerald-400" : "inline-flex items-center gap-1 px-2 py-1 rounded font-mono bg-red-900/30 text-red-400"}>
+      <span>{props.icon}</span>
+      <span>{isPositive ? "+" : ""}{props.value}</span>
+      <span className="text-parchment-500">{props.label}</span>
+    </span>
   );
 }

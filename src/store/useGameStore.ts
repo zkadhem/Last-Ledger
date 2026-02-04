@@ -36,6 +36,7 @@ type GameStore = {
   effectPopup?: EffectPopup;
   warnings: Warning[];
   showingStoryEvent: boolean;
+  showingPolicyPicker: boolean;
 
   // actions
   go: (screen: Screen) => void;
@@ -51,6 +52,11 @@ type GameStore = {
   actEmbezzle: () => void;
   actBribe: (faction: any) => void;
   actInvest: () => void;
+
+  // Policy management during game
+  togglePolicy: (policyId: string) => void;
+  openPolicyPicker: () => void;
+  closePolicyPicker: () => void;
 
   finishWeek: () => void;
   
@@ -223,12 +229,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
   effectPopup: undefined,
   warnings: [],
   showingStoryEvent: false,
+  showingPolicyPicker: false,
 
   go: (screen) => set({ screen }),
 
   resetMeta: () => {
     wipeMeta();
-    set({ meta: loadMeta(), run: undefined, lastResult: undefined, screen: "title", warnings: [], showingStoryEvent: false });
+    set({ meta: loadMeta(), run: undefined, lastResult: undefined, screen: "title", warnings: [], showingStoryEvent: false, showingPolicyPicker: false });
   },
 
   newRun: (opts) => {
@@ -239,7 +246,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const safeRulerId = allowedRulers.has(opts.rulerId) ? opts.rulerId : get().meta.unlockedRulerIds[0];
 
     const run = startNewRun({ seed: opts.seed, rulerId: safeRulerId, policyIds: safePolicyIds });
-    set({ run, screen: "run", lastResult: undefined, warnings: computeWarnings(run), showingStoryEvent: false });
+    set({ run, screen: "run", lastResult: undefined, warnings: computeWarnings(run), showingStoryEvent: false, showingPolicyPicker: false });
   },
 
   startWeek: () => {
@@ -331,6 +338,43 @@ export const useGameStore = create<GameStore>((set, get) => ({
       ]
     });
   },
+
+  // Policy management during game
+  togglePolicy: (policyId: string) => {
+    const run = get().run;
+    if (!run) return;
+    
+    const unlocked = new Set(get().meta.unlockedPolicyIds);
+    if (!unlocked.has(policyId)) return;
+    
+    const currentPolicies = [...run.policyIds];
+    const isActive = currentPolicies.includes(policyId);
+    
+    if (isActive) {
+      // Remove policy
+      const newPolicies = currentPolicies.filter(id => id !== policyId);
+      const newRun = { ...run, policyIds: newPolicies };
+      set({ run: newRun });
+      
+      const policy = CONTENT.policies.find(p => p.id === policyId);
+      get().toast(`📜 Repealed: ${policy?.name || policyId}`);
+    } else {
+      // Add policy (max 3)
+      if (currentPolicies.length >= 3) {
+        get().toast("⚠️ Maximum 3 edicts allowed. Repeal one first.");
+        return;
+      }
+      const newPolicies = [...currentPolicies, policyId];
+      const newRun = { ...run, policyIds: newPolicies };
+      set({ run: newRun });
+      
+      const policy = CONTENT.policies.find(p => p.id === policyId);
+      get().toast(`📜 Enacted: ${policy?.name || policyId}`);
+    }
+  },
+  
+  openPolicyPicker: () => set({ showingPolicyPicker: true }),
+  closePolicyPicker: () => set({ showingPolicyPicker: false }),
 
   finishWeek: () => {
     const run = get().run;
